@@ -18,8 +18,8 @@ The use of the folders created typically is as follows:
 | Programs | used to store customized programs created in,Stata or R. These can be called in Stata or "sourced" in R  |
 | Python   | Python files that execute geoprocessing, spatial or geostatistical analysis                              |
 | Rawdata  | All raw project data in any form. Data in,the folder are to remain in their original form                |
-| Stata    | Folder housing all of the do files for the,project                                                       |
-| Word     |                                                                                                          |  
+| Stata    | Folder housing all of the do files for the project                                                       |
+| Word     | all Word related documents stored here                                                                   |  
   
 *Additional folders can be created as needed for each project. This will generally be done using the 00_SetupGlobalsFolder.do file.*
 
