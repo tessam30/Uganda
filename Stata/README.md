@@ -18,6 +18,7 @@ This ensures that all .ado files needed for analysis are loaded ahead of time. I
 ```{stata}
 findit adofilename
 ```
+*In case you have problems downloading the .pkl from Github, you should be able to copy the contents of the file and save it as a .plk in a text editor.*
 
 ##### Project Setup & File Folder Structure 
 
@@ -120,7 +121,6 @@ compress
 * Save
 save "$pathout/hhchar.dta", replace
 ```
-
 
 
 
