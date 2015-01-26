@@ -5,7 +5,7 @@ Using Stata .do files
 This folder contains all of the Stata code to set up and execute the LVAM project on your local computer. All do files are given a run order indicated by the first two numbers of the .do file name. When creating new files, please preverse the run order as much as possible. For example, ```00_SetupFoldersGlobals``` is the first file in the sequence. This file should be exectued **at the start** of each session in order to enable the global macros.  Before executing any of the do files, please review the ```00_SetupFolderGlobals.do file```. This will provide you an overview of the file folder structure and the global macros.
 
 ##### Package (.ado) Installation
-To ensure that all .ado packages available for analysis are loaded across machines, the user should first install the .pkl (Stata package list) file. This can be done by downloading the .pkl file (```Ethiopia/Stata/TimAdoPC.pkl```) and running the following command in Stata:  
+To ensure that all .ado packages available for analysis are loaded across machines, the user should first install the .pkl (Stata package list) file. This can be done by downloading the .pkl file (```Uganda/Stata/TimAdoPC.pkl```) and running the following command in Stata:  
 ```{stata}
 adolist install C:\Users\*YOURNAME*\Downloads\TimAdoPC
 ``` 
