@@ -92,7 +92,7 @@ use "$pathin\003_mod_b1_male.dta", clear
 ```
 
 ##### Copylabels and Attachlabels
-Some of the LSMS modules are stored as individual-level datasets. As our analysis focuses on household livelihoods, we often summarize and collapse the data down to the household level. When collapsing data in Stata value labels are often lost in the process. To preserve value labels before and after the collapse command, we use the copylabels.do and the attachlabels.do files. Copies of these files should be downloaded and stored in the ```$pathdo``` folder.    
+Some of the LSMS modules are stored as individual-level datasets. As our analysis focuses on household livelihoods, we often summarize and collapse the data down to the household level. When collapsing data in Stata value labels are often lost in the process. To preserve value labels before and after the collapse command, we use the copylabels.do and the attachlabels.do files. Copies of these files should be downloaded and stored in the folder linked to the  ```$pathdo``` global macro.    
 
 The example code below shows the label commands in action (from Bangladesh LVAM):
 ```{stata}
