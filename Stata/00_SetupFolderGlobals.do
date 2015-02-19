@@ -37,7 +37,7 @@ cd "$projectpath"
 
 * Run a macro to set up study folder (needs to be modified)
 * Name the file path below -- replace "nigerlsms" with your folder name
-local pFolder UgandaLVAM
+local pFolder Uganda
 foreach dir in `pFolder' {
 	confirmdir "`dir'"
 	if `r(confirmdir)'==170 {
