@@ -2,7 +2,7 @@
 # Name:		00_SetupFolderGlobals
 # Purpose:	Create series of folders Food for Uganda Vulnerability Analysis
 # Author:	Tim Essam, Ph.D.
-# Created:	01/12/2014
+# Created:	10/31/2014; 02/19/2015.
 # Owner:	USAID GeoCenter | OakStream Systems, LLC
 # License:	MIT License
 # Ado(s):	see below
@@ -51,7 +51,7 @@ foreach dir in `pFolder' {
 
 * Run initially to set up folder structure
 * Choose your folders to set up as the local macro `folders'
-local folders Rawdata Stata Datain Log Output Dataout Excel PDF Word Graph GIS Export R Python Programs
+local folders Rawdata Stata Datain Log Output Dataout Excel PDF Word Graph GIS Export R Python Programs Sensitive_Data FinalProducts
 foreach dir in `folders' {
 	confirmdir "`dir'"
 	if `r(confirmdir)'==170 {
@@ -81,10 +81,36 @@ global pathexport "`dir'\Export"
 global pathR "`dir'\R"
 global pathPython "`dir'\Python"
 global pathProgram "`dir'\Program"
-global pathPdrive "P:\GeoCenter\GIS\Projects\Ethiopia"
-
+global pathPdrive "P:\GeoCenter\GIS\Projects\LVAM\Uganda"
+global pathSensitive "`dir'\Sensitive_Data"
+global pathProducts "`dir'\FinalProducts"
 * Project macros are defined as:
 macro list 
+
+* Add in subfolders for GIS and Final Products Folders
+cd "$pathgis"
+local gisfolders FeatureClass Shapefiles csv Layers mxd Rasters scratch
+foreach dir in `gisfolders' {
+	confirmdir "`dir'"
+	if `r(confirmdir)'==170 {
+			mkdir "`dir'"
+			disp in yellow "`dir' successfully created."
+		}
+	else disp as error "`dir' already exists. Skipped to next folder."
+}
+*end
+
+cd "$pathProducts"
+local subfolders AI PDFs PosterJPG PPTJPG 
+foreach dir in `subfolders' {
+	confirmdir "`dir'"
+	if `r(confirmdir)'==170 {
+			mkdir "`dir'"
+			disp in yellow "`dir' successfully created."
+		}
+	else disp as error "`dir' already exists. Skipped to next folder."
+}
+*end
 
 /*------------------------------------------------------------
 # Manually copy raw data  into Datain Folder #
