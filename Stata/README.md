@@ -7,6 +7,7 @@ This folder contains all of the Stata code to set up and execute the LVAM projec
 ##### Package (.ado) Installation
 To ensure that all .ado packages available for analysis are loaded across machines, the user should first install the .pkl (Stata package list) file. This can be done by downloading the .pkl file (```Uganda/Stata/TimAdoPC.pkl```) and running the following command in Stata:  
 ```{stata}
+ssc install adolist  
 adolist install C:\Users\*YOURNAME*\Downloads\TimAdoPC
 ``` 
 This will install a suite of .ado packages used in the analysis. For users familiar with R, this process is similar to running:
