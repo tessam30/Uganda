@@ -11,6 +11,7 @@
 clear
 capture log close
 log using "$pathlog/fcs.log", replace
+set more off
 
 use "$pathraw/GSEC15B.dta", replace
 
@@ -124,10 +125,10 @@ ds(h15* itmcd untcd), not
 keep `r(varlist)'
 
 * Collapse down to household level using max option, retain labels
-qui include "$pathdo/copylabels.do"
+qui include "$pathdo2/copylabels.do"
 ds(HHID), not
 collapse (max) `r(varlist)', by(HHID)
-qui include "$pathdo/attachlabels.do"
+qui include "$pathdo2/attachlabels.do"
 
 * Create food consumption score (FCS) and dietary diversity variables
 egen FCS = rsum2(staplesFCS pulseFCS vegFCS fruitFCS meatFCS milkFCS sugarFCS oilFCS)
@@ -171,10 +172,10 @@ la var saltFtfd  "HH consumes fortified salt"
 ds(h15* result_code), not
 keep `r(varlist)'
 
-qui include "$pathdo/copylabels.do"
+qui include "$pathdo2/copylabels.do"
 ds(HHID), not
 collapse (max) `r(varlist)', by(HHID)
-qui include "$pathdo/attachlabels.do"
+qui include "$pathdo2/attachlabels.do"
 
 * Merge with other food consumption data
 merge 1:1 HHID using "$pathout/fstmp.dta", gen(food_merge)
@@ -182,7 +183,7 @@ drop if food_merge ==1
 drop food_merge
 compress
 
-save "$pathout/fstmp2.dta"
+save "$pathout/fstmp2.dta", replace
 
 * Bring in food security information (pp 32)
 use "$pathraw/GSEC17A.dta", clear
@@ -214,9 +215,12 @@ keep `r(varlist)'
 merge 1:1 HHID using "$pathout/fstmp2.dta"
 compress
 save "$pathout/foodSecurity.dta", replace
+erase "$pathout/fstmp.dta"
+erase "$pathout/fstmp2.dta"
 
-
-
+* Merge in Geovars for R graphics
+merge 1:1 HHID using "$pathout/Geovars.dta", gen(geo_merge)
+drop geo_merge
 
 * Check correlation of FCS and Dietary Diversity
 twoway (lpolyci FCS dietDiv if foodTag!=1, /*
@@ -228,10 +232,15 @@ pwcorr FCS dietDiv, sig
 * Export a cut of FCS and dietary diversity to R for plotting
 preserve
 keep if foodTag != 1
-keep staples_days pulse_days milk_days meat_days veg_days oil_days sugar_days fruit_days FCS HHID 
+keep staples_days pulse_days milk_days meat_days veg_days oil_days sugar_days /*
+*/ fruit_days FCS HHID region urban subRegion hid
 rename *_days* *
-order HHID oil staples veg pulse sugar milk meat fruit FCS
+order oil staples veg pulse sugar milk meat fruit FCS 
+export delimited using "$pathexport/food.consumption.score.csv", replace
+restore
 
+preserve
+keep if foodTag != 1
 
 
 
