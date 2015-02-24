@@ -233,7 +233,7 @@ pwcorr FCS dietDiv, sig
 preserve
 keep if foodTag != 1
 keep staples_days pulse_days milk_days meat_days veg_days oil_days sugar_days /*
-*/ fruit_days FCS HHID region urban subRegion hid
+*/ fruit_days FCS HHID region urban subRegion hid district
 rename *_days* *
 order oil staples veg pulse sugar milk meat fruit FCS 
 export delimited using "$pathexport/food.consumption.score.csv", replace
@@ -243,6 +243,14 @@ preserve
 keep if foodTag != 1
 keep dietDiv hid region subRegion 
 export delimited using "$pathexport/diet.diversity.csv", replace
+restore
+
+preserve
+collapse (mean) FCS dietDiv foodLack (sd) fcsSD =FCS /*
+*/ dietDivSD=dietDiv  foodLackSD = foodLack (count)  /*
+*/ fcsCount = FCS ddCount = dietDiv FLCount = foodLack , by(district region)
+replace district = proper(district)
+export delimited using "$pathexport\AGOLdata.csv", replace
 restore
 
 
