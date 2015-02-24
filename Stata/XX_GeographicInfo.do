@@ -20,6 +20,7 @@ replace h1aq2 = upper(h1aq2)
 * Create additional ID variable to merge back in on (string gives problems)
 sort HHID
 egen hid = group(HHID)
+la var hid "Unique ID numeric"
 
 label drop sregion
 label def sregion 1 "Kampala" 2 "Central-1" 3 "Central-3" 4 "East-Central" /*
