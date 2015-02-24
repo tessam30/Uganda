@@ -222,6 +222,8 @@ erase "$pathout/fstmp2.dta"
 merge 1:1 HHID using "$pathout/Geovars.dta", gen(geo_merge)
 drop geo_merge
 
+* Fix the geographic information
+
 * Check correlation of FCS and Dietary Diversity
 twoway (lpolyci FCS dietDiv if foodTag!=1, /*
 */fitplot(connected)), ytitle(Food Consumption Score) /*
@@ -246,11 +248,13 @@ export delimited using "$pathexport/diet.diversity.csv", replace
 restore
 
 preserve
+
 collapse (mean) FCS dietDiv foodLack (sd) fcsSD =FCS /*
 */ dietDivSD=dietDiv  foodLackSD = foodLack (count)  /*
 */ fcsCount = FCS ddCount = dietDiv FLCount = foodLack , by(district region)
-replace district = proper(district)
 export delimited using "$pathexport\AGOLdata.csv", replace
 restore
 
-
+order HHID hid latitude longitude
+save "$pathout/FoodSecurityGeo.dta", replace
+export delimited "$pathexport/FoodSecurityGeo.csv", replace
