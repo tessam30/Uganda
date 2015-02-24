@@ -241,6 +241,8 @@ restore
 
 preserve
 keep if foodTag != 1
-
+keep dietDiv hid region subRegion 
+export delimited using "$pathexport/diet.diversity.csv", replace
+restore
 
 
