@@ -125,10 +125,10 @@ ds(h15* itmcd untcd), not
 keep `r(varlist)'
 
 * Collapse down to household level using max option, retain labels
-qui include "$pathdo2/copylabels.do"
+qui include "$pathdo/copylabels.do"
 ds(HHID), not
 collapse (max) `r(varlist)', by(HHID)
-qui include "$pathdo2/attachlabels.do"
+qui include "$pathdo/attachlabels.do"
 
 * Create food consumption score (FCS) and dietary diversity variables
 egen FCS = rsum2(staplesFCS pulseFCS vegFCS fruitFCS meatFCS milkFCS sugarFCS oilFCS)
@@ -158,10 +158,10 @@ use "$pathraw/GSEC15BB", replace
 g byte foodFtfd = (h15bq14 == 1 & h15bq15 == 1)
 la var foodFtfd "HH consumes fortified food"
 
-g byte maizeFtfd = 	(h15bq14 == 1 & h15bq15 == 1 & h15bqid == 113)
-g byte oilFtfd 	 = 	(h15bq14 == 1 & h15bq15 == 1 & h15bqid == 127)
-g byte sugarFtfd = 	(h15bq14 == 1 & h15bq15 == 1 & h15bqid == 147)
-g byte saltFtfd  = 	(h15bq14 == 1 & h15bq15 == 1 & h15bqid == 150)
+g byte maizeFtfd = (h15bq14 == 1 & h15bq15 == 1 & h15bqid == 113)
+g byte oilFtfd 	 = (h15bq14 == 1 & h15bq15 == 1 & h15bqid == 127)
+g byte sugarFtfd = (h15bq14 == 1 & h15bq15 == 1 & h15bqid == 147)
+g byte saltFtfd  = (h15bq14 == 1 & h15bq15 == 1 & h15bqid == 150)
 
 la var maizeFtfd "HH consumes fortified maize"
 la var oilFtfd 	 "HH consumes fortified oil"
@@ -172,10 +172,10 @@ la var saltFtfd  "HH consumes fortified salt"
 ds(h15* result_code), not
 keep `r(varlist)'
 
-qui include "$pathdo2/copylabels.do"
+qui include "$pathdo/copylabels.do"
 ds(HHID), not
 collapse (max) `r(varlist)', by(HHID)
-qui include "$pathdo2/attachlabels.do"
+qui include "$pathdo/attachlabels.do"
 
 * Merge with other food consumption data
 merge 1:1 HHID using "$pathout/fstmp.dta", gen(food_merge)
