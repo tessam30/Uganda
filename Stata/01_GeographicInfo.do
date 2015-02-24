@@ -1,5 +1,5 @@
 /*-------------------------------------------------------------------------------
-# Name:		XX_GeographicInfo
+# Name:		01_GeographicInfo
 # Purpose:	Tidy up geographic information, export to R and jitter GPS for mapping
 # Author:	Tim Essam, Ph.D.
 # Created:	10/31/2014; 02/19/2015.
