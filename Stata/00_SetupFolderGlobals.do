@@ -32,7 +32,7 @@ foreach x of local required_ados {
 
 * Determine path for the study 
 * global projectpath "U:/"
-* global projectpath "C:/Users/Tim/Documents/"
+*global projectpath "C:/Users/Tim/Documents/"
 global projectpath "C:/Users/t/Documents/"
 cd "$projectpath"
 
@@ -70,7 +70,7 @@ global date $S_DATE
 local dir `c(pwd)'
 global path "`dir'"
 global pathdo "`dir'/Stata"
-global pathdo2 "`dir'/Github\Uganda\Stata"
+global pathdo2 "C:/Users/t/Documents/GitHub/Uganda/Stata"
 global pathlog  "`dir'/Log"
 global pathin "`dir'/Datain"
 global pathout "`dir'/Dataout"
@@ -83,7 +83,7 @@ global pathexport "`dir'/Export"
 global pathR "`dir'/R"
 global pathPython "`dir'/Python"
 global pathProgram "`dir'/Program"
-global pathPdrive "P:/GeoCenter/GIS/Projects/LVAM\Uganda"
+global pathPdrive "P:/GeoCenter/GIS/Projects/LVA/Uganda"
 global pathSensitive "`dir'/Sensitive_Data"
 global pathProducts "`dir'/FinalProducts"
 * Project macros are defined as:
