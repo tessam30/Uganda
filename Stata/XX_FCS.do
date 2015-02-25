@@ -125,10 +125,10 @@ ds(h15* itmcd untcd), not
 keep `r(varlist)'
 
 * Collapse down to household level using max option, retain labels
-qui include "$pathdo/copylabels.do"
+qui include "$pathdo2/copylabels.do"
 ds(HHID), not
 collapse (max) `r(varlist)', by(HHID)
-qui include "$pathdo/attachlabels.do"
+qui include "$pathdo2/attachlabels.do"
 
 * Create food consumption score (FCS) and dietary diversity variables
 egen FCS = rsum2(staplesFCS pulseFCS vegFCS fruitFCS meatFCS milkFCS sugarFCS oilFCS)
@@ -172,10 +172,10 @@ la var saltFtfd  "HH consumes fortified salt"
 ds(h15* result_code), not
 keep `r(varlist)'
 
-qui include "$pathdo/copylabels.do"
+qui include "$pathdo2/copylabels.do"
 ds(HHID), not
 collapse (max) `r(varlist)', by(HHID)
-qui include "$pathdo/attachlabels.do"
+qui include "$pathdo2/attachlabels.do"
 
 * Merge with other food consumption data
 merge 1:1 HHID using "$pathout/fstmp.dta", gen(food_merge)
@@ -210,6 +210,8 @@ clonevar foodLack = h17q9
 * Keep new variables and HHID
 ds(h17* result_code), not
 keep `r(varlist)'
+
+recode foodLack (2 = 0)
 
 * Merge with other diet information data
 merge 1:1 HHID using "$pathout/fstmp2.dta"
@@ -248,7 +250,6 @@ export delimited using "$pathexport/diet.diversity.csv", replace
 restore
 
 preserve
-
 collapse (mean) FCS dietDiv foodLack (sd) fcsSD =FCS /*
 */ dietDivSD=dietDiv  foodLackSD = foodLack (count)  /*
 */ fcsCount = FCS ddCount = dietDiv FLCount = foodLack , by(district region)
@@ -257,4 +258,11 @@ restore
 
 order HHID hid latitude longitude
 save "$pathout/FoodSecurityGeo.dta", replace
-export delimited "$pathexport/FoodSecurityGeo.csv", replace
+g byte GPS_missing = latitude == .
+export delimited "$pathexport/FoodSecurityGeo.csv" if GPS_missing==0, replace
+
+drop if FCS ==.
+drop if FCS == 0
+keep latitude longitude FCS hid
+export delimited "$pathexport/FCSGeo.csv", replace
+
