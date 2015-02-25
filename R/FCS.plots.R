@@ -2,6 +2,7 @@
 # Author: Tim Essam, GeoCenter / OakStream Systems, LLC
 # Date: 2/23/2015
 
+
 # Clear the workspace
 remove(list = ls())
 
@@ -207,8 +208,6 @@ pp
 ggsave(pp, filename = paste("FCS.Distributions", ".png"), width=10, height=10, dpi = dpi.out)
 
 
-
-
 * Create ggvis graph using data (not currenlty used).
 mdata %>% 
   ggvis(~FCS, ~Days) %>%
@@ -250,12 +249,12 @@ names(dd) <- c("Diet", "HHID", "Region", "SubRegion")
 
 # Plot density of dietary diversity by District & Division
 
-c <- ggplot(dd, aes(Diet, fill = SubRegion)) + facet_wrap(~SubRegion, ncol = 2)
-pp <- c + geom_density(aes(y = ..count..)) + labs(x = "Number of different foods consumed (dotted line represents national average)"), 
+c <- ggplot(dd, aes(Diet, fill = Region)) + facet_wrap(~SubRegion, ncol = 2)
+pp <- c + geom_density(aes(y = ..count..)) + labs(x = "Number of different foods consumed (dotted line represents LSMS sample average)", 
 	title = "Uganda Dietary Diversity Score Distributions by LSMS Sub-Region", y = "Number of Households", colour = lgrayL) + 
   scale_x_continuous(breaks = seq(0, 12, by = 2), limits = c(0, 13), expand = c(0,0)) +
   scale_y_continuous(breaks = seq(0, 90, by = 25), limits = c(0, 90), expand = c(0,0)) +
-  theme(legend.position = "none", legend.title=element_blank(), panel.border = element_blank(), legend.key = element_blank(),
+  theme(legend.position = "top", legend.title=element_blank(), panel.border = element_blank(), legend.key = element_blank(),
         panel.background=element_rect(fill="white"), axis.ticks.y=element_blank(), 
         #panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         axis.text.y  = element_text(hjust=0, size=6, colour = dgrayL), axis.ticks.x=element_blank(),
