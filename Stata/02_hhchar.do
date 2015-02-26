@@ -17,6 +17,8 @@ use "$pathraw/GSEC2.dta", replace
 
 * Merge education data to household roster using the force command
 merge 1:1 HHID PID using "$pathraw/GSEC4.dta", force
+ren _merge gsecMerge
+merge 1:1 HHID PID using "$pathraw/GSEC3.dta", force
 
 /* Demographic list to calculate
 1. Head of Household Sex
@@ -77,6 +79,7 @@ extended period of time.
 *Create a flag variable for determining who is a usual member from above.
 g byte hhmemb = (inlist(h2q7, 1, 2) & h2q5 >= 6)
 egen hhsize = total(hhmemb), by(HHID)
+la var hhsize "household size"
 
 * Create sex ratio for households
 g byte male = h2q3 == 1 & hhmemb == 1
@@ -103,7 +106,7 @@ egen under15 = total(under15tmp), by(HHID)
 la var under15 "number of hh members under 15 years old"
 
 egen under24 = total(under24tmp), by(HHID)
-la var under15 "number of hh members under 24 years old"
+la var under24 "number of hh members under 24 years old"
 
 egen under15male = total(under15tmp) if male==1, by(HHID)
 la var under15male "number of male hh members under 15"
@@ -133,6 +136,7 @@ g depRatio = (totNumDepRatio/totDenomDepRatio)*100 if totDenomDepRatio!=.
 recode depRatio (. = 0) if totDenomDepRatio==0
 la var depRatio "Dependency Ratio"
 
+
 * Calculate household labor shares (ages 12 - 60)
 /* Household Labor Shares */
 g byte hhLabort = (h2q8>= 12 & h2q8<60) & hhmemb == 1
@@ -143,7 +147,7 @@ g byte mlabort = (h2q8>= 12 & h2q8<60 & male == 1)
 egen mlabor = total(mlabort), by(HHID)
 la var mlabor "hh male labor age>11 & <60"
 
-g byte flabort = (h2q8>= 12 & h2q8<60 & female == 2)
+g byte flabort = (h2q8>= 12 & h2q8<60 & female == 1)
 egen flabor = total(flabort), by(HHID)
 la var flabor "hh female labor age>11 & <60"
 drop hhLabort mlabort flabort
@@ -168,26 +172,108 @@ replace ae = male10 if (h2q8 >=10 ) & male == 1
 replace ae = fem10_19 if (h2q8 >= 10 & h2q8 < 20) & female == 1
 replace ae = fem20 if (h2q8 >= 20) & female == 1
 replace ae = child10 if (h2q8) < 10 & hhmemb == 1
-la var ae "Adult equivalents"
+la var ae "Adult equivalents in household"
 
 egen adultEquiv = total(ae), by(HHID)
 la var adultEquiv "Total adult equivalent units"
+
 
 **********************
 * Education outcomes *
 **********************
 /* Literacy is defined as one’s ability to read with understanding and to 
  write meaningfully in any language. */
-g byte 
+g byte literateHoh = h4q4 == 4 & hoh == 1
+g byte literateSpouse = h4q4 == 4 & h2q4 == 2 & hhmemb == 1
+
+la var literateHoh "Hoh is literate"
+la var literateSpouse "Spouse is literate"
+
+/* Education level values found in h4q7 defined using the following:
+http://microdata.worldbank.org/index.php/catalog/565/datafile/F2/V110
+http://www.classbase.com/countries/Uganda/Education-System
+	No Education (0)
+	Pre-Primary (Less than Primary Year 1)
+	Primary Level (Years 1 - 7)
+	Post-Primary Specialized Training or Certificate
+	Junior Vocational/Technical (Years 8 - 10)
+	Lower Secondary (Years 8 - 11)
+	Upper Secondary (Years 11 - 13)
+	Post-Secondary Specialized Training or Certificate
+	Tertiary (Above Secondary other than Post-Secondary Specialized Training or Cer
+tificate)
+*/
+g educ = . 
+la var educ "Education levels"
+* No education (This includes:"Don't Know" and "2" Responses))
+replace educ = 0 if inlist(h4q7, 2, 99)
+* Pre-primary
+replace educ = 1 if inlist(h4q7, 10)
+* Primary
+replace educ = 2 if inlist(h4q7, 11, 12, 13, 14, 15, 16, 17)
+* Post-Primary Specialized Training or Certificate
+replace educ = 3 if inlist(h4q7, 41)
+* Junior Techincal/Vocational 
+replace educ = 4 if inlist(h4q7, 21, 22, 23)
+* Lower Secondary 
+replace educ = 5 if inlist(h4q7, 31, 32, 33, 34)
+* Upper Secondary 
+replace educ = 6 if inlist(h4q7, 35, 36)
+* Post-Secondary Specialized Training or Certificate
+replace educ = 7 if inlist(h4q7, 51)
+* Tertiary
+replace educ = 8 if inlist(h4q7, 61)
+
+g educHoh = educ if hoh == 1
+g educSpouse = educ if h2q4 == 2 & hhmemb == 1
+
+lab def ed 0 "No education" 1 "Pre-primary" 2 "Primary" 3 "Post-Primary" /*
+*/ 4 "Junior Techincal/Vocational " 5 "Lower Secondary" 6 "Upper Secondary" /*
+*/ 7 "Post-Secondary Specialized" 8 "Tertiary"
+la values educ ed
+la values educHoh ed
+la values educSpouse ed
+
+* Create variable to reflect the maximum level of education in the household for those 25+
+egen educAdult = max(educ) if h2q8>24 & hhmemb ==1, by(HHID)
+egen educAdultM = max(educ) if h2q8>24 & hhmemb ==1 & male == 1, by(HHID)
+egen educAdultF = max(educ) if h2q8>24 & hhmemb ==1 & female == 1, by(HHID)
+
+la var educAdult "Highest adult education in household"
+la var educAdultM "Highest male adult education in household"
+la var educAdultF "Highest female adult education in household"
+la var educHoh "Education of Hoh"
+la var educSpouse "Education of spouse"
+
+* Calculate school expenses for all regular household members
+egen totSchoolExptmp = rsum2(h4q15a h4q15b h4q15c h4q15d h4q15e h4q15f)
+replace totSchoolExptmp = h4q15g if totSchoolExp == 0
+egen totSchoolExp = total(totSchoolExptmp), by(HHID)
+la var totSchoolExp "Total school expenses for household"
+
+g byte aidSchool = (h4q16 == 1)
+la var aidSchool "HH member received school scholarship (all sources)"
+
+drop totNumDepRatio totDenomDepRatio demonDepRatio numDepRatio male10 fem10_19 fem20 child10 /*
+*/ under15tmp under24tmp hhmemb totSchoolExptmp
+
+* Retain only derived data for collapsing
+ds(h2q* h4* T6* T2* LocID PID gsecMerge h3q* _merge educ), not
+keep `r(varlist)'
 
 
+* Collapse everything down to HH-level using max values for all vars
+* Copy variable labels to reapply after collapse
+include "$pathdo/copylabels.do"
 
+ds(HHID), not
+collapse (max) `r(varlist)', by(HHID) 
 
+* Reapply variable lables & value labels
+include "$pathdo/attachlabels.do"
 
-
-
-
-
+* Summarize collapsed data and review for potential coding errors
+sum
 
 * Save
 save "$pathout/hhchar.dta", replace
@@ -195,7 +281,6 @@ save "$pathout/hhchar.dta", replace
 * Keep a master file of only household id's for missing var checks
 keep HHID PID
 save "$pathout\hhid.dta", replace
-
 
 * Create an html file of the log for internet sharability
 log2html "$pathlog/02_hhchar", replace
