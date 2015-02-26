@@ -1,8 +1,8 @@
 /*------------------------------------------------------------------------------
 # Name:		02_hhchar
 # Purpose:	Process household characteristics and education characteristics
-# Author:	Patrick Gault
-# Created:	2015/2/21
+# Author:	Tim Essam
+# Created:	2015/2/26
 # License:	MIT License
 # Ado(s):	labutil, labutil2 (ssc install labutil, labutil2)
 # Dependencies: copylables, attachlabels, 00_SetupFoldersGlobals.do
