@@ -1,8 +1,8 @@
 Uganda
 ======
 This readme will be updated continually until the project ends.  
-
-#####Smoothed Food Consumption Scores Map
+  
+**Smoothed Food Consumption Scores Map**
 <p><img src="https://cloud.githubusercontent.com/assets/5873344/6397200/27cba878-bdb1-11e4-98a0-d36f2b9cc81e.png" alt="Smoothed FCS using Empirical Bayesian Kriging. Source: GeoCenter" align="middle"></p>
 
 ===  
