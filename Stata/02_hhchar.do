@@ -176,7 +176,9 @@ la var adultEquiv "Total adult equivalent units"
 **********************
 * Education outcomes *
 **********************
-
+/* Literacy is defined as one’s ability to read with understanding and to 
+ write meaningfully in any language. */
+g byte 
 
 
 
