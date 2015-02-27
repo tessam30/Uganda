@@ -11,7 +11,8 @@
 
 clear
 capture log close
-log using "$pathlog/01_hhchar.log", replace
+log using "$pathlog/02_hhchar", replace
+di in yellow "`c(current_date)' `c(current_time)'"
 
 use "$pathraw/GSEC2.dta", replace
 
@@ -271,13 +272,13 @@ keep `r(varlist)'
 
 * Collapse everything down to HH-level using max values for all vars
 * Copy variable labels to reapply after collapse
-include "$pathdo2/copylabels.do"
+include "$pathdo/copylabels.do"
 
 ds(HHID), not
 collapse (max) `r(varlist)', by(HHID) 
 
 * Reapply variable lables & value labels
-include "$pathdo2/attachlabels.do"
+include "$pathdo/attachlabels.do"
 
 * Summarize collapsed data and review for potential coding errors
 sum
@@ -287,7 +288,6 @@ foreach x of varlist  educHoh educSpouse educAdult educAdultM educAdultF educHoh
 	tab `x'
 	}
 *end
-
 
 * Save
 save "$pathout/hhchar.dta", replace
