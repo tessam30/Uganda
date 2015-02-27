@@ -254,6 +254,14 @@ la var totSchoolExp "Total school expenses for household"
 g byte aidSchool = (h4q16 == 1)
 la var aidSchool "HH member received school scholarship (all sources)"
 
+* Household member slept under mosquito net
+g byte mosqTreatnet = h3q10 == 2 & hhmemb == 1
+g byte mosqNet = (inlist(h3q10, 1, 2) & hhmemb == 1)
+
+* Occupation of mother and father (do not know codes yet, need to get them).
+g byte occupFath = h3q4 if hhmemb == 1
+g byte oocupMoth = h3q7 if hhmemb == 1
+
 drop totNumDepRatio totDenomDepRatio demonDepRatio numDepRatio male10 fem10_19 fem20 child10 /*
 */ under15tmp under24tmp hhmemb totSchoolExptmp
 
@@ -261,26 +269,33 @@ drop totNumDepRatio totDenomDepRatio demonDepRatio numDepRatio male10 fem10_19 f
 ds(h2q* h4* T6* T2* LocID PID gsecMerge h3q* _merge educ), not
 keep `r(varlist)'
 
-
 * Collapse everything down to HH-level using max values for all vars
 * Copy variable labels to reapply after collapse
-include "$pathdo/copylabels.do"
+include "$pathdo2/copylabels.do"
 
 ds(HHID), not
 collapse (max) `r(varlist)', by(HHID) 
 
 * Reapply variable lables & value labels
-include "$pathdo/attachlabels.do"
+include "$pathdo2/attachlabels.do"
 
 * Summarize collapsed data and review for potential coding errors
 sum
+
+foreach x of varlist  educHoh educSpouse educAdult educAdultM educAdultF educHoh educSpouse {
+	la values `x' ed
+	tab `x'
+	}
+*end
+
 
 * Save
 save "$pathout/hhchar.dta", replace
 
 * Keep a master file of only household id's for missing var checks
+use "$pathraw/GSEC2", replace
 keep HHID PID
-save "$pathout\hhid.dta", replace
+save "$pathout/hhid.dta", replace
 
 * Create an html file of the log for internet sharability
 log2html "$pathlog/02_hhchar", replace
