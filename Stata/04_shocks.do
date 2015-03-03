@@ -1,6 +1,6 @@
 /*-------------------------------------------------------------------------------
 # Name:		04_shocks
-# Purpose:	Create preliminary analysis Uganda  
+# Purpose:	Process shock module including coping strategies
 # Author:	Tim Essam, Ph.D.
 # Created:	01/12/2015
 # Owner:	USAID GeoCenter | OakStream Systems, LLC
@@ -114,7 +114,7 @@ keep `r(varlist)'
 
 * Collapse everything down to HH-level using max values for all vars
 * Copy variable labels to reapply after collapse
-include "$pathdo2/copylabels.do"
+include "$pathdo/copylabels.do"
 
 #delimit ;
 	collapse (max) ag aglow conflict drought disaster financial health other theft 
@@ -123,7 +123,7 @@ include "$pathdo2/copylabels.do"
 #delimit cr
 
 * Reapply variable lables & value labels
-include "$pathdo2/attachlabels.do"
+include "$pathdo/attachlabels.do"
 
 * Save shock data and merge with geovars
 compress
@@ -143,5 +143,3 @@ export delimited "$pathexport/shocks.csv", replace
 save "$pathout/shocks.dta", replace
 log2html "$pathlog/04_shocks", replace
 capture log close
-
-
