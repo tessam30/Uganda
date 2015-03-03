@@ -4,7 +4,7 @@
 # Author:	Tim Essam
 # Created:	2015/2/26
 # License:	MIT License
-# Ado(s):	labutil, labutil2 (ssc install labutil, labutil2)
+# Ado(s):	labutil, labutil2 (ssc install labutil, labutil2), zscore06
 # Dependencies: copylables, attachlabels, 00_SetupFoldersGlobals.do
 #-------------------------------------------------------------------------------
 */
@@ -52,6 +52,7 @@ drop _merge
 * Generate child height var assuming 24 month cutoff used correctly
 g cheight = h6q28a 
 clonevar ageMonths = h6q4
+la var ageMonths "Age of child (in months)
 replace cheight = h6q28b if cheight == .
 
 
@@ -64,6 +65,7 @@ replace waz06=. if waz06<-6 | waz06>5
 replace whz06=. if whz06<-5 | whz06>5
 replace bmiz06=. if bmiz06<-5 | bmiz06>5
 
+* Rename the variables to be more meaningful
 ren haz06 stunting
 ren waz06 underweight
 ren whz06 wasting
@@ -82,16 +84,19 @@ la var underwgt "Child is underweight for age"
 la var wasted "Child is wasting"
 
 sum stunted underwgt wasted 
+ds(h2* h6q* ), not
+mdesc `r(varlist)'
 
 * Look at the outcomes by age category
-twoway (lowess stunted ageMonths, mean adjust bwidth(0.5)) /*
-*/ (lowess wasted ageMonths, mean adjust bwidth(0.5)) /*
-*/ (lowess underwgt ageMonths, mean adjust bwidth(0.5)),  xlabel(0(6)60,  labsize(small))
+twoway (lowess stunted ageMonths, mean adjust bwidth(0.75)) /*
+*/ (lowess wasted ageMonths, mean adjust bwidth(0.75)) /*
+*/ (lowess underwgt ageMonths, mean adjust bwidth(0.75)),  /*
+*/ xlabel(0(6)60,  labsize(small))
 
 * child was/is breastfed
 g byte breastFed = (h6q6 == 1)
 
-lowess breastFed ageMonths, mean adjust bwidth(0.3)
+lowess breastFed ageMonths, mean adjust bwidth(0.9)
 
 * child had diarrhea
 g byte childDiarrhea = (h6q16 == 1)
@@ -103,3 +108,5 @@ la var breastFed "Child was breastfed"
 la var childDiarrhea "Child had diarrhea in last 2 weeks"
 la var childFever "Child had fever in last 2 weeks"
 
+* Save child health information (Individual 
+save "$pathout/childHealth_I.dta", replace
