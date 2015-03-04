@@ -12,6 +12,7 @@
 capture log close
 log using "$pathlog/05_hhchar", replace
 use "$pathraw/GSEC9A.dta", clear
+set more off
 
 * Type of dwelling
 g byte hutDwelling = (h9q1 == 7)
@@ -104,4 +105,32 @@ keep `r(varlist)'
 
 save "$pathout/hhenergy.dta", replace
 
-* Load in asset module 
+merge 1:1 HHID using "$pathout/hhinfra_tmp", gen(_hhinfra)
+erase "$pathout/hhenergy.dta"
+erase "$pathout/hhinfra_tmp.dta"
+
+* Create infrastructure index based 
+#delimit ;
+global factors "electricity openFire outdoorStove hutDwelling dwellingSize 
+	metalRoof mudDwelling dfloor protWater latrineCovered";
+#delimit cr
+
+factor $factors, pcf
+*rotate
+qui predict infraindex
+
+* Check cronbachs alpha for reliability
+alpha $factors 
+
+* Plot the factor loadings to see what is driving resultst
+* Plot loadings for review
+loadingplot, mlabs(small) mlabc(maroon) mc(maroon) /*
+	*/ xline(0, lwidth(med) lpattern(tight_dot) lcolor(gs10)) /*
+	*/ yline(0, lwidth(med) lpattern(tight_dot) lcolor(gs10)) /*
+	*/ title(Household infrastructure index loadings)
+graph export "$pathgraph\InfraWealthLoadings.png", as(png) replace
+scree, title(Scree plot of infrastructure index)
+
+
+save "$pathout/hhinfra.dta", replace
+
