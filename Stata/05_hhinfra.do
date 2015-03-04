@@ -109,18 +109,31 @@ merge 1:1 HHID using "$pathout/hhinfra_tmp", gen(_hhinfra)
 erase "$pathout/hhenergy.dta"
 erase "$pathout/hhinfra_tmp.dta"
 
-* Create infrastructure index based 
+* Merge in geograhpic information for urban/rural distinction
+merge 1:1 HHID using "$pathout/Geovars.dta", gen(_geo)
+drop if _geo != 3
+drop _geo
+
+/* NOTES: Create Infrastructure indices *Rural, Urban, National*
+ Keeping only first factor to simplify;
+ Use polychoric correlation matrix because of binary variables
+ http://www.ats.ucla.edu/stat/stata/faq/efa_categorical.htm
+*/
+
 #delimit ;
-global factors "electricity openFire outdoorStove hutDwelling dwellingSize 
-	metalRoof mudDwelling dfloor protWater latrineCovered";
+global factors "electricity openFire dwellingSize metalRoof 
+				mudDwelling dfloor protWater latrineCovered";
 #delimit cr
 
-factor $factors, pcf
-*rotate
-qui predict infraindex
-
-* Check cronbachs alpha for reliability
-alpha $factors 
+polychoric $factors if urban == 0
+matrix C = r(R)
+global N = r(N)
+factormat C, n($N) pcf factor(2)
+rotate, varimax
+greigen
+predict infraindex if urban == 0
+la var infraindex "infrastructure index for rural hh"
+alpha $factors if urban == 0
 
 * Plot the factor loadings to see what is driving resultst
 * Plot loadings for review
@@ -131,6 +144,16 @@ loadingplot, mlabs(small) mlabc(maroon) mc(maroon) /*
 graph export "$pathgraph\InfraWealthLoadings.png", as(png) replace
 scree, title(Scree plot of infrastructure index)
 
+* Run same process for entire sample
+polychoric $factors
+matrix C = r(R)
+global N = r(N)
+factormat C, n($N) pcf factor(2)
+rotate, varimax
+greigen
+predict infraindex_all
+la var infraindex_all "infrastructure index for rural hh"
+alpha $factors 
 
 save "$pathout/hhinfra.dta", replace
 
