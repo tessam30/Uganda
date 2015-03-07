@@ -15,8 +15,8 @@ libs <- c ("geoR", "akima", "leaflet", "dplyr", "lattice",
 lapply(libs, require, character.only=T)
 
 # Set working directory to Ethiopia project
-wdw <- c("U:/Ethiopia/Export")
-wdh <- c("c:/Users/t/Documents/Uganda/Export")
+wdw <- c("U:/Uganda/Export")
+wdh <- c("c:/Users/Tim/Documents/Uganda/Export")
 setwd(wdh)
 
 # Read in data; subset GPS info and jitter for no overlap

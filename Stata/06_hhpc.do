@@ -11,7 +11,7 @@
 
 clear
 capture log close
-log using "$pathlog/05_hhpc", replace
+log using "$pathlog/06_hhpc", replace
 set more off
 
 * Load the assets module
@@ -100,21 +100,37 @@ include "$pathdo/attachlabels.do"
 
 * Create a durable asset index based on core assets (not including house, land, building)
 #delimit ;
-global factors "house building land furniture appliances tv radio generator 
-	solar bicycle moto vehicle boat othTrans jewelry mobile computer internet";
+
+
+global factors "furniture appliances tv radio bicycle 
+		moto jewelry mobile";
 #delimit cr
+sum $factors if urban == 0
 
-polychoric $factors if urban == 0
-
-bob
-matrix C = r(R)
-global N = r(N)
-factormat C, n($N) pcf factor(2)
-rotate, varimax
-greigen
-predict infraindex if urban == 0
-la var infraindex "infrastructure index for rural hh"
+factor $factors if urban == 0 , pcf
+predict wealth_rural if urban ==0
+la var wealth_rural "wealth index"
 alpha $factors if urban == 0
+scree
 
+* Plot the factor loadings to see what is driving resultst
+* Plot loadings for review
+loadingplot, mlabs(small) mlabc(maroon) mc(maroon) /*
+	*/ xline(0, lwidth(med) lpattern(tight_dot) lcolor(gs10)) /*
+	*/ yline(0, lwidth(med) lpattern(tight_dot) lcolor(gs10)) /*
+	*/ title(Household infrastructure index loadings)
+graph export "$pathgraph\WealthLoadings.png", as(png) replace
+scree, title(Scree plot of wealth index)
+
+
+factor $factors , pcf
+predict wealth_all
+la var wealth_all "wealth index (all)"
+alpha $factors
+scree
+
+save "$pathout/hhpc.dta", replace
+log2html "$pathlog/06_hhpc", replace
+capture log close
 
 

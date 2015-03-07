@@ -152,8 +152,10 @@ factormat C, n($N) pcf factor(2)
 rotate, varimax
 greigen
 predict infraindex_all
-la var infraindex_all "infrastructure index for rural hh"
+la var infraindex_all "infrastructure index for all hh"
 alpha $factors 
 
 save "$pathout/hhinfra.dta", replace
+log2html "$pathlog/05_hhchar", replace
+capture log close
 

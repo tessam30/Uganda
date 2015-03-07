@@ -88,6 +88,24 @@ la var assetShk "Assets (house, land, livestock)"
 la var healthShk "Health (death, illness)"
 la var crimeShk "Crime & Safety (theft, violence)"
 
+recode h16q02b (16 = 12)
+* How long did each shock last (taking max value)
+egen priceLgth  = max(h16q02b) if inlist(h16q00, 106, 107)==1 &  inlist(h16q01, 1) == 1, by(HHID)
+egen hazardLgth = max(h16q02b) if inlist(h16q00, 101, 102, 103, 117) &  inlist(h16q01, 1) == 1, by(HHID)
+egen employLgth = max(h16q02b) if inlist(h16q00, 108, 109) &  inlist(h16q01, 1) == 1, by(HHID)
+egen assetLgth  = max(h16q02b) if inlist(h16q00, 104, 105) &  inlist(h16q01, 1) == 1, by(HHID)
+egen healthLgth = max(h16q02b) if inlist(h16q00, 110, 111, 112, 113) &  inlist(h16q01, 1) == 1, by(HHID)
+egen crimeLgth  = max(h16q02b) if inlist(h16q00, 114, 115, 116) &  inlist(h16q01, 1) == 1, by(HHID)
+
+*label variables
+la var priceLgth "Length of price shocks  (inputs, outputs, food)"
+la var hazardLgth "Length of hazard schock (flood, fire, drought, landslide)"
+la var employLgth "Length of Employment (jobs, wages)"
+la var assetLgth "Length of Assets (house, land, livestock)"
+la var healthLgth "Length of Health (death, illness)"
+la var crimeLgth "Length of Crime & Safety (theft, violence)"
+
+
 * How did households cope?
 label list df_SHOCKRECOVERY
 
@@ -119,6 +137,7 @@ include "$pathdo/copylabels.do"
 #delimit ;
 	collapse (max) ag aglow conflict drought disaster financial health other theft 
 	priceShk hazardShk employShk healthShk crimeShk assetShk
+	priceLgth hazardLgth employLgth assetLgth healthLgth crimeLgth
 	goodcope badcope incReduction anyshock totShock, by(HHID) fast; 
 #delimit cr
 
