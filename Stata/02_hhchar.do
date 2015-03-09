@@ -178,6 +178,36 @@ la var ae "Adult equivalents in household"
 egen adultEquiv = total(ae), by(HHID)
 la var adultEquiv "Total adult equivalent units"
 
+* Ethnicity codes of household members - create mixed hh codes or homogenous hh
+* Codes found in UNPS2010.Household.Woman.Qx.Manual.pdf (pp. 132)
+la def eth 11 "Acholi" 12 "Alur" 13 "Baamba" 14 "Babukusu" 15 "Babwisi" /*
+*/ 16 "Bafumbira" 17 "Baganda" 18 "Bagisu" 19 "Bagungu" 20 "Bagwe" 21 "Bagwere"  /*
+*/ 22 "Bahehe" 23 "Bahororo" 24 "Bakenyi" 25 "Bakiga" 26 "Bakhonzo" /*
+*/ 27 "Banyabindi" 28 "Banyakole" 29 "Banyara" 30 "Banyarwanda" 31 "Banyole" /*
+*/ 32 "Banyoro" 33 "Baruli" 34 "Basamia" 35 "Basoga" 36 "Basongora" /*
+*/ 37 "Batagwenda" 38 "Batoro" 39 "Batuku" 40 "Batwa" 41 "Chope" 42 "Dodoth" /*
+*/ 43 "Ethur" 44 "Ik (Teuso)" 45 "Iteso" 46 "Indian" 47 "Japadhola" 48 "Jie" /*
+*/ 49 "Jonam" 50 "Kakwa" 51 "Karimojong" 52 "Kebu" 53 "Kuku" 54 "Kumam" /*
+*/ 55 "Langi" 56 "Lendu" 57 "Lugbara" 58 "Madi" 59 "Mening" 60 "Mvuba" 61 "Napore"/*
+*/ 62 "Nubi" 63 "Nyangia" 64 "Pokot" 65 "Sabiny" 66 "So (Tepeth)" 67 "Vonoma"
+la val h3q9 eth
+
+* Create variable reflectin whether or not husband/wife are same ethnic mix
+g ethHeadtmp = h3q9 if h2q4 == 1
+egen ethHead = max(ethHeadtmp), by(HHID)
+
+g ethSpousetmp = h3q9 if h2q4 == 2
+egen ethSpouse = max(ethSpousetmp), by(HHID)
+
+g byte mixedEth = (ethHead != ethSpouse) if marriedHoh==1
+replace mixedEth = 0 if mixedEth ==.
+
+* Create a varible for homogenous hh
+* Take summ of hh eth and divide by hhsize
+
+
+
+
 
 **********************
 * Education outcomes *
