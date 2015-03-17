@@ -40,7 +40,7 @@ g ageSpouse = h2q8 if h2q4 == 2
 la var ageSpouse "Age of spouse"
 
 g ageheadsq = agehead^2
-la var ageheadsq "Squared age of the head (for non-linear effects)"
+la var ageheadsq "Squared age of the head (for non-linear life experience)"
 
 * Relationship status variables
 g byte marriedHohm = h2q10 == 1 & hoh==1
@@ -103,58 +103,33 @@ recode sexRatio (. = 0) if fsize==0
 la var sexRatio "Ratio of males to females in HH"
 
 * Calculate age demographics (Youth)
-*** REDO USING EGEN + CUT ***
+* Make cuts at 0-5; 6-9; 10-14; 15-17; 18-24; 25-30; 31-35;
+* Youth standard definition is 15-24; 
+* Uganda definition is 18-30 (http://www.ubos.org/onlinefiles/uploads/ubos/pdf%20documents/NCLS%20Report%202011_12.pdf)
+egen youthtmp = cut(h2q8), at(0, 6, 10, 15, 18, 25, 31, 36) icodes
+table youthtmp, c(min h2q8 max h2q8)
+table h2q8 youthtmp
 
+* Create binary variables for demographic categories
+g byte under5tmp = inlist(youthtmp, 0) & hhmemb == 1
+g byte under15tmp = inlist(youthtmp, 0, 1, 2) & hhmemb == 1
+g byte under24tmp = inlist(youthtmp, 0, 1, 2, 3, 4) & hhmemb == 1
+g byte youth15to24tmp = inlist(youthtmp, 3, 4) & hhmemb == 1
+g byte youth18to30tmp = inlist(youthtmp, 4, 5) & hhmemb == 1
 
-g byte under15tmp = h2q8 <= 15 & hhmemb ==1 
-g byte under24tmp = h2q8 <= 24 &  hhmemb==1
-g byte youth15to35tmp = h2q8 >=15 & h2q8 <=35
-g byte youth15to24tmp = h2q8 >=15 & h2q8 <=24
-g byte child0to5tmp = h2q8 <= 5
-g byte child6to14tmp = h2q8 >= 6 & h2q8 <= 14
+* Create total, male and female totals at the household level of each demographic
+local demo under5 under15 under24 youth15to24 youth18to30 
+foreach x of local demo {
+	egen `x'  = total(`x'tmp), by(HHID)
+	egen `x'm = total(`x'tmp) if male == 1, by(HHID)
+	egen `x'f = total(`x'tmp) if female == 2, by(HHID)
+	
+	la var `x' "total hh members `x'"
+	la var `x'm "total male hh members `x'"
+	la var `x'f "total female hh members `x'"
+}
+*end
 
-egen under15 = total(under15tmp), by(HHID)
-la var under15 "number of hh members under 15 years old"
-
-egen under24 = total(under24tmp), by(HHID)
-la var under24 "number of hh members under 24 years old"
-
-egen under15male = total(under15tmp) if male==1, by(HHID)
-la var under15male "number of male hh members under 15"
-
-egen under15female = total(under15tmp) if female==1, by(HHID)
-la var under15female "number of female hh members under 15"
-
-egen under24male = total(under24tmp) if male==1, by(HHID)
-la var under24male "number of male hh members under 24"
-
-egen under24female = total(under24tmp) if female==1, by(HHID)
-la var under24female "number of female hh members under 24"
-
-* Continue to make youth variables (by gender)
-egen youth15to35 = total(youth15to35tmp), by(HHID)
-la var youth15to35 "number of youth 15 to 35"
-
-egen youth15to24 = total(youth15to24tmp), by(HHID)
-la var youth15to24 "number of youth 15 to 24"
-
-egen youth15to35male = total(youth15to35tmp) if male==1, by(HHID)
-la var youth15to35male "number of male youth 15 to 35"
-
-egen youth15to35female = total(youth15to35tmp) if female==1, by(HHID)
-la var youth15to35female "number of female youth 15 to 35"
-
-egen youth15to24male = total(youth15to24tmp) if male==1, by(HHID)
-la var youth15to24male "number of male youth 15 to 24"
-
-egen youth15to24female = total(youth15to24tmp) if female==1, by(HHID)
-la var youth15to24female "number of female hh members under 24"
-
-egen child0to5 = total(child0to5tmp), by(HHID)
-la var child0to5 "number of children under 5"
-
-egen child6to14 = total(child6to14tmp), by(HHID)
-la var child6to14 "number of children 6 to 14"
 
 /* Create intl. HH dependency ratio (age ranges appropriate for Bangladesh)
 # HH Dependecy Ratio = [(# people 0-14 + those 65+) / # people aged 15-64 ] * 100 # 
@@ -223,22 +198,30 @@ la def eth 11 "Acholi" 12 "Alur" 13 "Baamba" 14 "Babukusu" 15 "Babwisi" /*
 */ 43 "Ethur" 44 "Ik (Teuso)" 45 "Iteso" 46 "Indian" 47 "Japadhola" 48 "Jie" /*
 */ 49 "Jonam" 50 "Kakwa" 51 "Karimojong" 52 "Kebu" 53 "Kuku" 54 "Kumam" /*
 */ 55 "Langi" 56 "Lendu" 57 "Lugbara" 58 "Madi" 59 "Mening" 60 "Mvuba" 61 "Napore"/*
-*/ 62 "Nubi" 63 "Nyangia" 64 "Pokot" 65 "Sabiny" 66 "So (Tepeth)" 67 "Vonoma"
+*/ 62 "Nubi" 63 "Nyangia" 64 "Pokot" 65 "Sabiny" 66 "So (Tepeth)" 67 "Vonoma" 68 "Other"
 la val h3q9 eth
 
 * Create variable reflectin whether or not husband/wife are same ethnic mix
 g ethHeadtmp = h3q9 if h2q4 == 1
+
 egen ethHead = max(ethHeadtmp), by(HHID)
+la val ethHead eth
 
 g ethSpousetmp = h3q9 if h2q4 == 2
 egen ethSpouse = max(ethSpousetmp), by(HHID)
+la val ethSpouse eth
 
 g byte mixedEth = (ethHead != ethSpouse) if marriedHoh==1 & ethHead!=. & ethSpouse !=.
 replace mixedEth = 0 if mixedEth ==.
+la var mixedEth "mixed ethnicity household"
 
-* Create a varible for homogenous hh
-* Take summ of hh eth and divide by hhsize
+egen mixedEthType = concat(ethHead ethSpouse) if ethHead!=. & ethSpouse !=., decode p("-")
+la var mixedEthType "type of mixed ethinicity household"
 
+***********
+* Orphans *
+***********
+g byte orphan = h3q2a == 3 & h3q5a == 3
 
 
 
