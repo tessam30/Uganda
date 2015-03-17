@@ -36,6 +36,9 @@ la var femhead "Female head of household"
 g agehead = h2q8 if hoh == 1
 la var agehead "Age of head of household"
 
+g ageSpouse = h2q8 if h2q4 == 2
+la var ageSpouse "Age of spouse"
+
 g ageheadsq = agehead^2
 la var ageheadsq "Squared age of the head (for non-linear effects)"
 
@@ -99,9 +102,16 @@ g sexRatio = msize/fsize
 recode sexRatio (. = 0) if fsize==0
 la var sexRatio "Ratio of males to females in HH"
 
-* Calculate age demographics
+* Calculate age demographics (Youth)
+*** REDO USING EGEN + CUT ***
+
+
 g byte under15tmp = h2q8 <= 15 & hhmemb ==1 
 g byte under24tmp = h2q8 <= 24 &  hhmemb==1
+g byte youth15to35tmp = h2q8 >=15 & h2q8 <=35
+g byte youth15to24tmp = h2q8 >=15 & h2q8 <=24
+g byte child0to5tmp = h2q8 <= 5
+g byte child6to14tmp = h2q8 >= 6 & h2q8 <= 14
 
 egen under15 = total(under15tmp), by(HHID)
 la var under15 "number of hh members under 15 years old"
@@ -121,10 +131,35 @@ la var under24male "number of male hh members under 24"
 egen under24female = total(under24tmp) if female==1, by(HHID)
 la var under24female "number of female hh members under 24"
 
+* Continue to make youth variables (by gender)
+egen youth15to35 = total(youth15to35tmp), by(HHID)
+la var youth15to35 "number of youth 15 to 35"
+
+egen youth15to24 = total(youth15to24tmp), by(HHID)
+la var youth15to24 "number of youth 15 to 24"
+
+egen youth15to35male = total(youth15to35tmp) if male==1, by(HHID)
+la var youth15to35male "number of male youth 15 to 35"
+
+egen youth15to35female = total(youth15to35tmp) if female==1, by(HHID)
+la var youth15to35female "number of female youth 15 to 35"
+
+egen youth15to24male = total(youth15to24tmp) if male==1, by(HHID)
+la var youth15to24male "number of male youth 15 to 24"
+
+egen youth15to24female = total(youth15to24tmp) if female==1, by(HHID)
+la var youth15to24female "number of female hh members under 24"
+
+egen child0to5 = total(child0to5tmp), by(HHID)
+la var child0to5 "number of children under 5"
+
+egen child6to14 = total(child6to14tmp), by(HHID)
+la var child6to14 "number of children 6 to 14"
+
 /* Create intl. HH dependency ratio (age ranges appropriate for Bangladesh)
 # HH Dependecy Ratio = [(# people 0-14 + those 65+) / # people aged 15-64 ] * 100 # 
 The dependency ratio is defined as the ratio of the number of members in the age groups 
-of 0–14 years and above 60 years to the number of members of working age (15–60 years). 
+of 0â€“14 years and above 60 years to the number of members of working age (15â€“60 years). 
 The ratio is normally expressed as a percentage (data below are multiplied by 100 for pcts.*/
 g byte numDepRatio = (h2q8 < 15 | h2q8 > 64) & hhmemb == 1
 g byte demonDepRatio = numDepRatio != 1 & hhmemb == 1
@@ -136,7 +171,6 @@ assert hhsize == totNumDepRatio+totDenomDepRatio if hhmemb==1
 g depRatio = (totNumDepRatio/totDenomDepRatio)*100 if totDenomDepRatio!=.
 recode depRatio (. = 0) if totDenomDepRatio==0
 la var depRatio "Dependency Ratio"
-
 
 * Calculate household labor shares (ages 12 - 60)
 /* Household Labor Shares */
@@ -199,7 +233,7 @@ egen ethHead = max(ethHeadtmp), by(HHID)
 g ethSpousetmp = h3q9 if h2q4 == 2
 egen ethSpouse = max(ethSpousetmp), by(HHID)
 
-g byte mixedEth = (ethHead != ethSpouse) if marriedHoh==1
+g byte mixedEth = (ethHead != ethSpouse) if marriedHoh==1 & ethHead!=. & ethSpouse !=.
 replace mixedEth = 0 if mixedEth ==.
 
 * Create a varible for homogenous hh
@@ -212,7 +246,7 @@ replace mixedEth = 0 if mixedEth ==.
 **********************
 * Education outcomes *
 **********************
-/* Literacy is defined as one’s ability to read with understanding and to 
+/* Literacy is defined as oneâ€™s ability to read with understanding and to 
  write meaningfully in any language. */
 g byte literateHoh = h4q4 == 4 & hoh == 1
 g byte literateSpouse = h4q4 == 4 & h2q4 == 2 & hhmemb == 1
@@ -319,9 +353,11 @@ foreach x of varlist  educHoh educSpouse educAdult educAdultM educAdultF educHoh
 	}
 *end
 
+merge 1:1 HHID using "$pathout/Geovars.dta", gen(geo_merge)
+
 * Save
 save "$pathout/hhchar.dta", replace
-
+bob
 * Keep a master file of only household id's for missing var checks
 use "$pathraw/GSEC2", replace
 keep HHID PID
