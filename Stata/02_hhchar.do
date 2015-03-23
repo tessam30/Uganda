@@ -419,7 +419,7 @@ drop youthtmp under5tmp under15tmp under24tmp youth15to24tmp youth18to30tmp /*
 */ hhmig totSchoolExptmp
 
 * Retain only derived data for collapsing
-qui ds(h2q* h4* T6* T2* LocID PID gsecMerge h3q* _merge educ ae), not
+qui ds(h2q* h4* T6* T2* LocID gsecMerge h3q* _merge educ ae), not
 keep `r(varlist)'
 
 preserve
@@ -427,6 +427,7 @@ keep if hhmemb == 1
 save "$pathout/hhchar_ind.dta", replace
 restore
 
+drop PID
 * Collapse everything down to HH-level using max values for all vars
 * Copy variable labels to reapply after collapse
 qui include "$pathdo/copylabels.do"

@@ -14,10 +14,12 @@ capture log close
 log using "$pathlog/03_health", replace
 di in yellow "`c(current_date)' `c(current_time)'"
 
-use "$pathraw/GSEC5.dta", replace
+u "$pathraw/GSEC5.dta", replace
 
 * Household illness in past 30 days
 g byte illness = (h5q4 == 1)
+egen totIllness = total(illness), by(HHID)
+la var totIllness "Total hh members ill in last 30 days"
 
 * Major place of consultation
 g hlthCons = .
@@ -36,6 +38,9 @@ clonevar distFacility = h5q11
 * Total costs for household due to illness
 egen medCosts = total(h5q12), by(HHID)
 
+* Individual costs per illness
+clonevar medCostsI = h5q12
+
 * Costs per capita
 bys HHID: g byte hhtmp = (inlist(h5q12, 0, .)!=1)
 egen hhtmptot = total(hhtmp), by(HHID)
@@ -48,17 +53,46 @@ egen medTime = total(h5q6), by(HHID)
 la var illness "HH member sick in past 30 days"
 la var medCosts "Total hh medical costs"
 la var medCostspc "Per capital medical costs"
-la var medTime "Total hh time lost due to illness"
+la var medTime "Total hh time lost due to illness (activities)"
 la var hlthCons "Health consultation details"
 
+drop hhtmp hhtmptot
+
+preserve
 * Merge with individual demographic data
-merge 1:1 HHID PID using "$pathout/hhchar_I.dta"
+ds(h2* h5*), not
+keep `r(varlist)'
+merge 1:1 HHID PID using "$pathout/hhchar_ind.dta
 
-
-
+* Keep individuals matching in both data sets
+keep if _merge == 3
 
 * Save data and move to next module
 save "$pathout/illness_I.dta", replace
+restore
+
+* Create binaries for each type of treatment sought
+tab hlthCons, gen(treatment)
+
+* Keep household-level vars and collapse down
+ds(PID h2* h5* hlthCons medCostsI), not
+keep `r(varlist)'
+
+qui include "$pathdo/copylabels.do"
+ds(HHID), not
+collapse (max) `r(varlist)', by(HHID)
+qui include "$pathdo/attachlabels.do"
+
+* Recode distance to facilty to be great then 100
+recode distFacility (100/1500 = 100)
+
+* Save illness
+save "$pathout/healthtmp.dta", replace
+
+
+*******
+* MCH *
+*******
 
 * Maternal child health issues
 use "$pathraw/GSEC6A.dta", clear
@@ -68,14 +102,11 @@ merge 1:1 HHID PID using "$pathraw/GSEC2.dta"
 keep if _merge == 3
 drop _merge
 
-* Children breastfed in household?
-
 * Generate child height var assuming 24 month cutoff used correctly
 g cheight = h6q28a 
 clonevar ageMonths = h6q4
 la var ageMonths "Age of child (in months)
 replace cheight = h6q28b if cheight == .
-
 
 * Calculate z-scores using zscore06 package
 * 13 reported cases of oedema
@@ -115,23 +146,57 @@ twoway (lowess stunted ageMonths, mean adjust bwidth(0.75)) /*
 */ (lowess underwgt ageMonths, mean adjust bwidth(0.75)),  /*
 */ xlabel(0(6)60,  labsize(small))
 
-* child was/is breastfed
+* child was/is breastfed & given vit A
 g byte breastFed = (h6q6 == 1)
+g byte vitA = inlist(h6q14, 1, 2) == 1
+g byte childFever = inlist(h6q22, 1) 
 
-lowess breastFed ageMonths, mean adjust bwidth(0.9)
+la var breastFed "child in hh was breastfed"
+la var vitA "child in hh received vit A in last 6 months"
+lowess breastFed ageMonths, mean adjust bwidth(0.6) xlabel(0(6)60,  labsize(small))
 
 * child had diarrhea
 g byte childDiarrhea = (h6q16 == 1)
-
-* child had fever
-g byte childFever = h6q22 == 1
 
 la var breastFed "Child was breastfed"
 la var childDiarrhea "Child had diarrhea in last 2 weeks"
 la var childFever "Child had fever in last 2 weeks"
 
 * Save child health information (Individual 
-save "$pathout/childHealth_I.dta", replace
+sa "$pathout/childHealth_I.dta", replace
+
+* Create a variable counting the number of children under 60 months (5 years)
+bys HHID: g childUnd5 = _N
+la var childUnd5 
+
+* Create hh malnutrition indicators
+local malnu stunted underwgt wasted breastFed childFever childDiarrhea
+foreach x of local malnu {
+	egen `x'Count = total(`x'), by(HHID)
+	g pct`x' = `x'Count / childUnd5
+	la var `x'Count "Total children `x'"
+	la var pct`x' "Percent of children `x'"
+	}
+*end
+
+* Collapse down to hh level keeping only major indicators
+qui include "$pathdo/copylabels.do"
+#delimit ; 
+	collapse (mean) stunting underweight wasting BMI
+	(max) stuntedCount pctstunted underwgtCount 
+	pctunderwgt wastedCount pctwasted breastFedCount 
+	pctbreastFed childFeverCount pctchildFever 
+	childDiarrheaCount pctchildDiarrhea childUnd5,
+	by(HHID) fast;
+#delimit cr
+qui include "$pathdo/attachlabels.do"
+
+merge 1:1 HHID using "$pathout/healthtmp.dta"
+replace childUnd5 = 0 if childUnd5 == .
+erase "$pathout/healthtmp.dta"
 
 
-
+* Save created data
+sa "$pathout/health.dta", replace
+log2html "$pathlog/03_health", replace
+capture log close
