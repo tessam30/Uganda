@@ -35,8 +35,8 @@ g byte mudDwelling = inlist(h9q5, 1, 2, 3) == 1
 la var mudDwelling "dwelling is made primarily of mud"
 
 * Dirt floor?
-g byte dfloor = inlist(h9q6, 1, 2) == 1
-la var dfloor "dwelling has mud/dirt/earth floor" 
+g byte cmtfloor = inlist(h9q6, 1, 2) != 1
+la var cmtfloor "dwelling does not have mud/dirt/earth floor" 
 
 * HH has protected water source
 g byte protWater = inlist(h9q7, 1, 2, 3, 4, 5) == 1
@@ -120,9 +120,14 @@ drop _geo
  http://www.ats.ucla.edu/stat/stata/faq/efa_categorical.htm
 */
 
+* Infra index based on FAO RIGA methodology
+* running water, electricity, toilet, distance to water, floor material
+
+
+
 #delimit ;
 global factors "electricity openFire dwellingSize metalRoof 
-				mudDwelling dfloor protWater latrineCovered";
+			mudDwelling cmtfloor protWater latrineCovered";
 #delimit cr
 
 polychoric $factors if urban == 0
@@ -134,6 +139,24 @@ greigen
 predict infraindex if urban == 0
 la var infraindex "infrastructure index for rural hh"
 alpha $factors if urban == 0
+
+#delimit ;
+global factors "electricity openFire dwellingSize metalRoof 
+			 cmtfloor protWater latrineCovered";
+#delimit cr
+polychoric $factors if urban == 1
+matrix C = r(R)
+global N = r(N)
+factormat C, n($N) pcf factor(2)
+rotate, varimax
+greigen
+predict infraindex_urb if urban == 1
+la var infraindex_urb "infrastructure index for rural hh"
+alpha $factors if urban == 1
+
+
+
+
 
 * Plot the factor loadings to see what is driving resultst
 * Plot loadings for review

@@ -150,12 +150,11 @@ merge 1:1 HHID using "$pathout/Geovars.dta", gen(geo_merge)
 drop geo_merge
 
 * Merge in the data with sampling information
-merge 1:1 HHID using "$pathraw\GSEC1.dta", gen(_merge)
+merge 1:1 HHID using "$pathraw/GSEC1.dta", gen(_merge)
 keep if _merge==3
+drop _merge
 
 * Survey set the data to account for complex sampling design in variance calculations
-* svyset comm [pweight=mult], strata(stratum) singleunit(centered)
-
 * Export a cut for GIS work
 export delimited "$pathexport/shocks.csv", replace
 
