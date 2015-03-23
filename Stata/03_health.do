@@ -2,7 +2,7 @@
 # Name:		03_health
 # Purpose:	Process household health and child nutrition information
 # Author:	Tim Essam
-# Created:	2015/2/26
+# Created:	2015/3/23
 # License:	MIT License
 # Ado(s):	labutil, labutil2 (ssc install labutil, labutil2), zscore06
 # Dependencies: copylables, attachlabels, 00_SetupFoldersGlobals.do
@@ -18,6 +18,20 @@ use "$pathraw/GSEC5.dta", replace
 
 * Household illness in past 30 days
 g byte illness = (h5q4 == 1)
+
+* Major place of consultation
+g hlthCons = .
+replace hlthCons = 0 if h5q10 == .
+replace hlthCons = 1 if inlist(h5q10, 1, 2, 4)
+replace hlthCons = 2 if inlist(h5q10, 5, 7)
+replace hlthCons = 3 if inlist(h5q10, 6, 10)
+replace hlthCons = 4 if inlist(h5q10, 3, 8, 9, 11, 12, 13, 96)
+
+la def hlth 0 "None" 1 "Government facility" 2 "Private facility" /*
+*/ 3 "Pharmacy" 4 "Other"
+la val hlthCons hlth
+
+clonevar distFacility = h5q11
 
 * Total costs for household due to illness
 egen medCosts = total(h5q12), by(HHID)
@@ -35,9 +49,16 @@ la var illness "HH member sick in past 30 days"
 la var medCosts "Total hh medical costs"
 la var medCostspc "Per capital medical costs"
 la var medTime "Total hh time lost due to illness"
+la var hlthCons "Health consultation details"
+
+* Merge with individual demographic data
+merge 1:1 HHID PID using "$pathout/hhchar_I.dta"
+
+
+
 
 * Save data and move to next module
-save "$pathout/illness.dta", replace
+save "$pathout/illness_I.dta", replace
 
 * Maternal child health issues
 use "$pathraw/GSEC6A.dta", clear
@@ -57,7 +78,8 @@ replace cheight = h6q28b if cheight == .
 
 
 * Calculate z-scores using zscore06 package
-zscore06, a(h6q4) s(h2q3) h(cheight) w(h6q27)
+* 13 reported cases of oedema
+zscore06, a(h6q4) s(h2q3) h(cheight) w(h6q27) o(h6q26)
 
 * Remove scores that are implausible
 replace haz06=. if haz06<-6 | haz06>6
@@ -110,3 +132,6 @@ la var childFever "Child had fever in last 2 weeks"
 
 * Save child health information (Individual 
 save "$pathout/childHealth_I.dta", replace
+
+
+
