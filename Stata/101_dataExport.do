@@ -9,3 +9,20 @@
 #-------------------------------------------------------------------------------
 */
 
+clear
+capture log close
+log using "$pathlog/06_hhpc", replace
+set more off
+
+* Load the assets module
+u "$pathout/hhchar.dta"
+
+local mlist health shocks health foodSecurityGeo  hhinfra hhpc   
+local i = 1
+foreach x of local mlist {
+	merge 1:1 HHID using "$pathout/`x'.dta", gen(merge_`i')
+	local i = `i' + 1
+	display "`x'"
+}
+*end
+
