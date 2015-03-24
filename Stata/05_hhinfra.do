@@ -154,10 +154,6 @@ predict infraindex_urb if urban == 1
 la var infraindex_urb "infrastructure index for rural hh"
 alpha $factors if urban == 1
 
-
-
-
-
 * Plot the factor loadings to see what is driving resultst
 * Plot loadings for review
 loadingplot, mlabs(small) mlabc(maroon) mc(maroon) /*

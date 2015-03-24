@@ -149,6 +149,7 @@ assert dietDiv <= 12
 la var FCS "Food Consumption Score"
 la var dietDiv "Dietary diversity (12 food groups)"
 g byte foodTag = inlist(dietDiv, 0, 1) == 1
+la var foodTag "FCS is zero due to data availability"
 
 save "$pathout/fstmp.dta", replace
 
@@ -223,7 +224,10 @@ erase "$pathout/fstmp2.dta"
 * Merge in Geovars for R graphics
 merge 1:1 HHID using "$pathout/Geovars.dta", gen(geo_merge)
 drop geo_merge
-
+preserve
+keep if foodTag == 0
+save "$pathout/foodSecurityGeo.dta", replace
+restore
 * Fix the geographic information
 
 * Check correlation of FCS and Dietary Diversity

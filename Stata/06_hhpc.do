@@ -1,6 +1,6 @@
 /*-------------------------------------------------------------------------------
 # Name:		06_hhpc
-# Purpose:	Create preliminary analysis Uganda  
+# Purpose:	Create household physical capital variables 
 # Author:	Tim Essam, Ph.D.
 # Created:	01/12/2015
 # Owner:	USAID GeoCenter | OakStream Systems, LLC
@@ -30,7 +30,7 @@ recode h14q4 (21/157 = 20)
 # delimit ;
 local assets house building land furniture appliances tv radio generator
 	solar bicycle moto vehicle boat othTrans jewelry mobile computer internet
-	otherElect;
+	otherElect otherAsset;
 #delimit cr
 
 * Loop over each asset in order, verifying code using output (p. 24, Section 14)
@@ -44,7 +44,7 @@ foreach x of local assets {
 	}
 *end
 
-foreach name of varlist house-otherElect {
+foreach name of varlist house-otherAsset {
 	la var `name' "HH owns at least one `name's"
 	bys HHID: g n`name' = (`name' * h14q4)
 	replace n`name'=0 if n`name'==. 
@@ -87,7 +87,6 @@ egen hhDurVal_sub = sum(h14q5) if h14q4!=. & inlist(h14q2, 2, 3, 4)!= 1, by(HHID
 la var hhDurVal_sub "total value of durables not including house, land or buildings"
 
 *tabstat hhDurablesValue, by(d1_02) stat(mean sd min max)
-
 drop h14* region regurb district county subRegion dist* af_* result_code /*
 */  _merge longitude latitude munit* mnunit*
 
@@ -100,35 +99,39 @@ include "$pathdo/attachlabels.do"
 
 * Create a durable asset index based on core assets (not including house, land, building)
 #delimit ;
-
-
 global factors "furniture appliances tv radio bicycle 
-		moto jewelry mobile";
+		moto vehicle jewelry mobile otherAsset";
 #delimit cr
-sum $factors if urban == 0
 
-factor $factors if urban == 0 , pcf
-predict wealth_rural if urban ==0
-la var wealth_rural "wealth index"
-alpha $factors if urban == 0
-scree
-
+forvalues i = 0(1)1{
+	sum $factors if urban == `i'
+	factor $factors if urban == `i' , pcf
+	predict wealth_`i' if urban == `i'
+	la var wealth_`i' "wealth index"
+	alpha $factors if urban == `i'
+	scree
+	
 * Plot the factor loadings to see what is driving resultst
 * Plot loadings for review
 loadingplot, mlabs(small) mlabc(maroon) mc(maroon) /*
 	*/ xline(0, lwidth(med) lpattern(tight_dot) lcolor(gs10)) /*
 	*/ yline(0, lwidth(med) lpattern(tight_dot) lcolor(gs10)) /*
 	*/ title(Household infrastructure index loadings)
-graph export "$pathgraph\WealthLoadings.png", as(png) replace
+graph export "$pathgraph/WealthLoadingsR.png", as(png) replace
 scree, title(Scree plot of wealth index)
+}
+ren wealth_0 wealthindex_rur
+ren wealth_1 wealthindex_urb
 
-
+* Create national index
 factor $factors , pcf
-predict wealth_all
-la var wealth_all "wealth index (all)"
+predict wealthindex
+la var wealthindex "wealth index"
 alpha $factors
 scree
 
+
+*end
 save "$pathout/hhpc.dta", replace
 log2html "$pathlog/06_hhpc", replace
 capture log close

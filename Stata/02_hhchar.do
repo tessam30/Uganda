@@ -13,6 +13,7 @@ clear
 capture log close
 log using "$pathlog/02_hhchar", replace
 di in yellow "`c(current_date)' `c(current_time)'"
+set more off
 
 use "$pathraw/GSEC2.dta", replace
 
