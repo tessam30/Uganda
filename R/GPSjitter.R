@@ -24,14 +24,22 @@ d <- read.csv("UgandaGeo.csv", header=TRUE)
 
 #Drop records with missing lat/lon values
 d <- na.omit(d)
+names(d)[names(d) == "HHID"] <- "hh"
+
 
 # Use geoR package to jitter the stacked coordinates
 gps <- subset(d, select = c(longitude, latitude))
 jitgps <- jitter2d(gps, max=0.01)
 
+names(d)[names(d) == "longitude"] <- "lon_stack"
+names(d)[names(d) == "latitude"] <- "lat_stack"
+
 # Subset data to be recobined with GIS info
-data <- subset(d, select = c(hid))
+data <- subset(d, select = c(lon_stack, lat_stack, hh))
 geo <- cbind(jitgps, data)
+# Add in a year for identification when merging in Stata
+geo$year <- rep(2011, dim(geo)[1])
+geo$hid <- geo$hh
 
 # Export jittered data to GIS/export folder
 write.csv(geo, "GPSjitter.csv")

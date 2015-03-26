@@ -17,7 +17,7 @@ set more off
 * Load the assets module
 u "$pathout/hhchar.dta"
 
-local mlist health shocks health foodSecurityGeo  hhinfra hhpc   
+local mlist health shocks health foodSecurityGeo hhinfra hhpc   
 local i = 1
 foreach x of local mlist {
 	merge 1:1 HHID using "$pathout/`x'.dta", gen(merge_`i')
@@ -25,4 +25,11 @@ foreach x of local mlist {
 	display "`x'"
 }
 *end
+
+* Create a codebook for highlighting variables to be mapped
+codebook, c
+
+* Export the data
+export delimited using "$pathexport/Uganda.3.24.2015.csv", replace
+
 

@@ -9,7 +9,6 @@
 #-------------------------------------------------------------------------------
 */
 
-
 * Bring in geographic data
 use "$pathraw/GSEC1.dta", clear
 
@@ -21,7 +20,7 @@ clonevar county = h1aq2
 
 * Create additional ID variable to merge back in on (string gives problems)
 sort HHID
-egen hid = group(HHID)
+destring HHID, gen(hid)
 la var hid "Unique ID numeric"
 
 label drop sregion
@@ -76,6 +75,11 @@ foreach x of local required_file {
 import delimited "$pathexport/GPSjitter.csv", clear 
 la var longitude "HH longitude"
 la var latitude  "HH latitude"
+la var lon_stack "HH longitude stacked"
+la var lat_stack "HH latitude stacked"
+la var year "year"
+la var hh "household id across panels"
+la var hid "household id across panels2"
 drop v1
 
 * Make unique ID upper for merging
@@ -87,6 +91,8 @@ compress
 
 * Fix off-diagonal elements of two-way between region & sub-Region
 br if region == 1 & subRegion == "East-Central"
+
+* create a hh variable for merging with RIGA panel data
 
 save "$pathout/Geovars.dta", replace
 capture erase "$pathout/Geovars_tmp.dta"
